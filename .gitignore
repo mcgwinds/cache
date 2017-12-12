@@ -1,0 +1,56 @@
+*.class
+.project
+.settings/
+sam-auth-service/.classpath
+sam-auth-service/.project
+sam-auth-service/.settings/
+sam-auth-service/target/
+sam-base/.classpath
+sam-base/.project
+sam-base/.settings/
+sam-base/target/
+sam-staff-service/.classpath
+sam-staff-service/.project
+sam-staff-service/.settings/
+sam-staff-service/target/
+sam-service/.classpath
+sam-service/.project
+sam-service/.settings/
+sam-service/target/
+# Mobile Tools for Java (J2ME)
+.mtj.tmp/
+
+# Package Files #
+*.jar
+*.war
+*.ear
+
+# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
+hs_err_pid*
+
+.idea
+*.iml
+.project
+.settings/
+.vscode/
+*/.*
+
+# .gitignore for maven
+sdk/
+target/
+sdk/gen-java
+sdk/gen-php
+common-config/src/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+*.log
+g
+
+.DS_Store
+
