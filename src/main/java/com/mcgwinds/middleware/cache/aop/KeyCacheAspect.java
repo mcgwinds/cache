@@ -15,15 +15,10 @@ public class KeyCacheAspect extends CacheAspect {
          Method method = getMethod(pjp);
          if(method.isAnnotationPresent(KeyCache.class)) {
              KeyCache keyCache = method.getAnnotation(KeyCache.class);
-             proceed(keyCache,pjp);
+             return cacheHandler.proceed(keyCache,pjp);
          }
         return proceed(pjp);
 
-    }
-
-    public Object proceed(KeyCache cache,ProceedingJoinPoint pjp) throws Throwable {
-        Object[] arguments=pjp.getArgs();
-        return null;
     }
 
 }

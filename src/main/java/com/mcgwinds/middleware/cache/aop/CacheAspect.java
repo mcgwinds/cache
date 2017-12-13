@@ -1,5 +1,6 @@
 package com.mcgwinds.middleware.cache.aop;
 
+import com.mcgwinds.middleware.cache.handler.CacheHandler;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.slf4j.Logger;
@@ -14,6 +15,8 @@ import java.lang.reflect.Method;
 public class CacheAspect {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CacheAspect.class);
+
+    protected CacheHandler cacheHandler;
 
     protected Method getMethod(ProceedingJoinPoint pjp) throws NoSuchMethodException {
         //获取参数的类型
