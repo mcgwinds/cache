@@ -1,6 +1,7 @@
 package com.mcgwinds.middleware.cache.aop;
 
-import com.mcgwinds.middleware.cache.handler.CacheHandler;
+import com.mcgwinds.middleware.cache.cachehandler.CacheHandler;
+import com.mcgwinds.middleware.cache.util.ClassUtil;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.slf4j.Logger;
@@ -19,15 +20,13 @@ public class CacheAspect {
     protected CacheHandler cacheHandler;
 
     protected Method getMethod(ProceedingJoinPoint pjp) throws NoSuchMethodException {
-        //获取参数的类型
-        MethodSignature signature = (MethodSignature) pjp.getSignature();
-        Method method = signature.getMethod();
-        return pjp.getTarget().getClass().getMethod(pjp.getSignature().getName(), method.getParameterTypes());
+
+        return ClassUtil.getMethod(pjp);
 
     }
 
     protected Object[] getArgs(ProceedingJoinPoint pjp) {
-        return pjp.getArgs();
+        return ClassUtil.getArgs(pjp);
     }
 
     protected Object proceed(ProceedingJoinPoint pjp) throws Throwable {
