@@ -7,6 +7,7 @@ import org.aspectj.lang.reflect.MethodSignature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Resource;
 import java.lang.reflect.Method;
 
 /**
@@ -17,6 +18,7 @@ public class CacheAspect {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CacheAspect.class);
 
+    @Resource
     protected CacheHandler cacheHandler;
 
     protected Method getMethod(ProceedingJoinPoint pjp) throws NoSuchMethodException {

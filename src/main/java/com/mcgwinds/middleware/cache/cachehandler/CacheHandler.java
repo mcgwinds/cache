@@ -13,21 +13,27 @@ import com.mcgwinds.middleware.cache.util.ClassUtil;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
 
+import javax.annotation.Resource;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 
 /**
  * Created by mcg on 2017/12/12.
  */
+@Component
 public class CacheHandler {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CacheHandler.class);
 
+    @Resource
     private DataSourceManager dataSourceManager;
 
+    @Resource
     private CacheManager cacheManager;
 
+    @Resource
     private CacheKeyFactory cacheKeyFactory;
 
     public Object proceed(Cache cache, ProceedingJoinPoint pjp) throws Throwable {
