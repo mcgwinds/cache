@@ -20,9 +20,7 @@ public class CacheAspect {
     protected CacheHandler cacheHandler;
 
     protected Method getMethod(ProceedingJoinPoint pjp) throws NoSuchMethodException {
-
         return ClassUtil.getMethod(pjp);
-
     }
 
     protected Object[] getArgs(ProceedingJoinPoint pjp) {

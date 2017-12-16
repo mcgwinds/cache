@@ -1,5 +1,6 @@
 package com.mcgwinds.middleware.cache.cachehandler;
 
+import com.alibaba.druid.support.json.JSONUtils;
 import com.mcgwinds.middleware.cache.annotation.Cache;
 import com.mcgwinds.middleware.cache.bean.CacheKey;
 import com.mcgwinds.middleware.cache.bean.CacheWrapper;
@@ -22,8 +23,6 @@ import java.lang.reflect.Parameter;
 public class CacheHandler {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CacheHandler.class);
-
-    private AbstractScriptParser scriptParser;
 
     private DataSourceManager dataSourceManager;
 
@@ -59,14 +58,9 @@ public class CacheHandler {
         }
         LOGGER.warn("cache key:{}, cache data is null {} ", cacheKey, null == cacheWrapper);
 
-//        if(opType == CacheOPType.READ_ONLY) {
-//            return null == cacheWrapper ? null : cacheWrapper.getCacheObject();
-//        }
-
-
-
-
-
+        if(opType == CacheOPType.READ_ONLY) {
+            return null == cacheWrapper ? null : cacheWrapper.getCacheObject();
+        }
 
 
         return null;
@@ -74,8 +68,12 @@ public class CacheHandler {
     }
 
     private CacheWrapper<Object> getDataOfCache(CacheKey cacheKey, Method method, Object[] arguments) {
-
-        return null;
+        if(null==cacheKey) {
+            LOGGER.warn("the cache key is null");
+            return null;
+        }
+        LOGGER.info("get data from cache...,the cache key:{}; method:{}", JSONUtils.toJSONString(cacheKey),JSONUtils.toJSONString(method));
+        return cacheManager.getDataOfCache(cacheKey);
     }
 
     private Object getDataOfDataSource(ProceedingJoinPoint pjp) throws Throwable {
@@ -83,10 +81,7 @@ public class CacheHandler {
             long startTime=System.currentTimeMillis();
             Object result=pjp.proceed();
             long useTime=System.currentTimeMillis() - startTime;
-//            if(config.isPrintSlowLog() && useTime >= config.getSlowLoadTime()) {
-//                String className=pjp.getTargetClass().getName();
-//                LOGGER.error("{}.{}, use time:{}ms", className, pjp.getMethod().getName(), useTime);
-//            }
+            LOGGER.info("get data from datasource is used time {}" ,useTime);
             return result;
         } catch(Throwable e) {
             throw e;

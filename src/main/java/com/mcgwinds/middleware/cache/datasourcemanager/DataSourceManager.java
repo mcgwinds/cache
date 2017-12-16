@@ -5,5 +5,4 @@ package com.mcgwinds.middleware.cache.datasourcemanager;
  */
 public interface DataSourceManager {
 
-
 }

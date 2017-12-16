@@ -7,7 +7,11 @@ import java.io.Serializable;
  */
 public final class CacheKey implements Serializable {
 
+    private final String cachekey;// 缓存Key
 
+    public CacheKey(String cachekey) {
+        this.cachekey=cachekey;
 
+    }
 
 }

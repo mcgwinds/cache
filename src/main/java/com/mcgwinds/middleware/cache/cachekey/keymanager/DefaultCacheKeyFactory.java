@@ -14,11 +14,8 @@ import java.lang.reflect.Parameter;
  * Created by mcg on 2017/12/14.
  */
 public class DefaultCacheKeyFactory implements CacheKeyFactory {
-
-    private Compressor defaultCompressor;
-
     /**
-     * 默认生成缓存key
+     *
      * @return CacheKey
      */
     public CacheKey getCacheKey(Cache cache, Method method,Object [] arguments,Parameter[] parameters) {
@@ -41,7 +38,7 @@ public class DefaultCacheKeyFactory implements CacheKeyFactory {
                 }
             }
         }
-
-        return null;
+        CacheKey cacheKey=new CacheKey(paramKeyMap.toString());
+        return cacheKey;
     }
 }

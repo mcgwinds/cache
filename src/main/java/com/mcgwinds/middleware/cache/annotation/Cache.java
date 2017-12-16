@@ -30,8 +30,4 @@ public @interface Cache {
       */
      String getCacheKeyHeader() default "";
 
-
-
-
-
 }
