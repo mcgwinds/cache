@@ -5,15 +5,15 @@ package com.mcgwinds.middleware.cache.type;
  */
 public enum CacheOPType {
 
-    //从数据源加载
-    LOAD,
-
     //只从缓存中读，用于只读场景
-    READ_ONLY,
+    RE_ONLY,
 
-    //从缓存中加载最新的数据，写入缓存
-    WRITE_ONLY,
+    //从从数据源中加载最新的数据，写入缓存
+    WR_ONLY,
 
     //读写缓存操:如果缓存中有数据，则使用缓存中的数据，如果缓存中没有数据，则加载数据，并写入缓存。
-    READ_WRITE;
+    RE_WR,
+
+    //删除缓存的数据(一般用于先更新数据，然后删除缓存)
+    DEL;
 }

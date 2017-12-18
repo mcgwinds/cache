@@ -10,7 +10,7 @@ import java.lang.reflect.Method;
  */
 public class KeyCacheAspect extends CacheAspect {
 
-    public Object process(ProceedingJoinPoint pjp) throws Throwable {
+    public Object getData(ProceedingJoinPoint pjp) throws Throwable {
 
          Method method = getMethod(pjp);
          if(method.isAnnotationPresent(Cache.class)) {
@@ -20,5 +20,18 @@ public class KeyCacheAspect extends CacheAspect {
         return proceed(pjp);
 
     }
+
+    //用于先更新数据库然后删除缓存
+    public void deleteCache(ProceedingJoinPoint pjp) throws Throwable {
+
+        Method method = getMethod(pjp);
+        if(method.isAnnotationPresent(Cache.class)) {
+             Cache keyCache = method.getAnnotation(Cache.class);
+             cacheHandler.proceed(keyCache,pjp);
+        }
+        proceed(pjp);
+
+    }
+
 
 }

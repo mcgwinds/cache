@@ -1,13 +1,12 @@
-package com.mcgwinds.middleware.cache.cachehandler;
+package com.mcgwinds.middleware.cache.handler;
 
-import com.alibaba.druid.support.json.JSONUtils;
+import com.alibaba.fastjson.JSON;
 import com.mcgwinds.middleware.cache.annotation.Cache;
 import com.mcgwinds.middleware.cache.bean.CacheKey;
 import com.mcgwinds.middleware.cache.bean.CacheWrapper;
 import com.mcgwinds.middleware.cache.cachemanage.CacheManager;
 import com.mcgwinds.middleware.cache.datasourcemanager.DataSourceManager;
 import com.mcgwinds.middleware.cache.cachekey.keymanager.CacheKeyFactory;
-import com.mcgwinds.middleware.cache.script.AbstractScriptParser;
 import com.mcgwinds.middleware.cache.type.CacheOPType;
 import com.mcgwinds.middleware.cache.util.ClassUtil;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -44,29 +43,30 @@ public class CacheHandler {
             return getDataOfDataSource(pjp);
         }
         CacheOPType opType=cache.getOPType();
-        //如果缓存类型是load，则直接从数据源读
-        if(CacheOPType.LOAD==opType) {
-            return getDataOfDataSource(pjp);
-        }
-        if(CacheOPType.WRITE_ONLY==opType) {
+
+        if(CacheOPType.WR_ONLY==opType) {
 
         }
-
         Method method= ClassUtil.getMethod(pjp);
         Object [] arguments=ClassUtil.getArgs(pjp);
         Parameter[] parameters=ClassUtil.getParameter(pjp);
         CacheKey cacheKey=getCacheKey(cache,method,arguments,parameters);
+        if(CacheOPType.DEL==opType) {
+            this.deleteDataOfCache(cacheKey, method, arguments); //删除缓存
+        }
         CacheWrapper<Object> cacheWrapper=null;
         try {
             cacheWrapper=this.getDataOfCache(cacheKey, method, arguments);// 从缓存中获取数据
         } catch(Exception ex) {
             LOGGER.error(ex.getMessage(), ex);
         }
-        LOGGER.warn("cache key:{}, cache data is null {} ", cacheKey, null == cacheWrapper);
+        LOGGER.warn("Cache key:{}, Cache data is null {} ", cacheKey, null == cacheWrapper);
 
-        if(opType == CacheOPType.READ_ONLY) {
+        if(opType == CacheOPType.RE_ONLY) {
             return null == cacheWrapper ? null : cacheWrapper.getCacheObject();
         }
+
+
 
 
         return null;
@@ -78,16 +78,28 @@ public class CacheHandler {
             LOGGER.warn("the cache key is null");
             return null;
         }
-        LOGGER.info("get data from cache...,the cache key:{}; method:{}", JSONUtils.toJSONString(cacheKey),JSONUtils.toJSONString(method));
-        return cacheManager.getDataOfCache(cacheKey);
+        LOGGER.info("get data from cache...,the cache key:{}; method:{}", JSON.toJSONString(cacheKey), JSON.toJSONString(method));
+        return cacheManager.getDataOfCache(cacheKey,method,arguments);
     }
 
+    private void deleteDataOfCache(CacheKey cacheKey, Method method, Object[] arguments) {
+        if(null==cacheKey) {
+            LOGGER.warn("the cache key is null");
+            return;
+        }
+        LOGGER.info("delete data from cache...,the cache key:{}; method:{}", JSON.toJSONString(cacheKey), JSON.toJSONString(method));
+         cacheManager.deleteDataOfCache(cacheKey,method,arguments);
+         //自动加载
+    }
+
+    //从dao中读取数据
     private Object getDataOfDataSource(ProceedingJoinPoint pjp) throws Throwable {
+
         try {
             long startTime=System.currentTimeMillis();
             Object result=pjp.proceed();
             long useTime=System.currentTimeMillis() - startTime;
-            LOGGER.info("get data from datasource is used time {}" ,useTime);
+            LOGGER.info("get data from dataSource is used time {}" ,useTime);
             return result;
         } catch(Throwable e) {
             throw e;

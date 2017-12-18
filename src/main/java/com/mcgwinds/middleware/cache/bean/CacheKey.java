@@ -1,5 +1,7 @@
 package com.mcgwinds.middleware.cache.bean;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.io.Serializable;
 
 /**
@@ -7,11 +9,27 @@ import java.io.Serializable;
  */
 public final class CacheKey implements Serializable {
 
-    private final String cachekey;// 缓存Key
+    private final String cacheKey;// 缓存Key
 
-    public CacheKey(String cachekey) {
-        this.cachekey=cachekey;
+    private String cacheKeyHead; //缓存key头
+
+    private String namespace; //命名空间
+
+    public CacheKey(String namespace,String cacheKeyHead,String cacheKey) {
+        this.namespace = namespace;
+        this.cacheKeyHead = cacheKeyHead;
+        this.cacheKey = cacheKey;
 
     }
 
+
+    public String getCacheKey() {
+        StringBuilder cacheKey=new StringBuilder();
+        if(!StringUtils.isEmpty(namespace)) {
+            cacheKey.append(namespace).append(":");
+
+        }
+        cacheKey.append(cacheKeyHead).append(":").append(cacheKey);
+        return this.cacheKey;
+    }
 }

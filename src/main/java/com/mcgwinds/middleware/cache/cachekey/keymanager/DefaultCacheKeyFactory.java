@@ -14,12 +14,13 @@ import java.lang.reflect.Parameter;
  * Created by mcg on 2017/12/14.
  */
 public class DefaultCacheKeyFactory implements CacheKeyFactory {
+
     /**
-     *
+     *获取缓存key
      * @return CacheKey
      */
     public CacheKey getCacheKey(Cache cache, Method method,Object [] arguments,Parameter[] parameters) {
-
+        String namespace=cache.namespace();
         String cacheKeyHeader=cache.getCacheKeyHeader();
         KeyMap<String,String> paramKeyMap=new KeyMap<String,String>();
         parameters = method.getParameters();
@@ -38,7 +39,7 @@ public class DefaultCacheKeyFactory implements CacheKeyFactory {
                 }
             }
         }
-        CacheKey cacheKey=new CacheKey(paramKeyMap.toString());
+        CacheKey cacheKey=new CacheKey(namespace,cacheKeyHeader,paramKeyMap.toString());
         return cacheKey;
     }
 }

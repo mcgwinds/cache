@@ -28,5 +28,10 @@ public class ClassUtil {
         return getMethod(pjp).getParameters();
     }
 
+    public static Class getReturnType(Method method) {
+        return method.getReturnType();
+    }
+
+
 
 }
