@@ -5,7 +5,6 @@ import com.mcgwinds.middleware.cache.annotation.Cache;
 import com.mcgwinds.middleware.cache.bean.CacheKey;
 import com.mcgwinds.middleware.cache.bean.CacheWrapper;
 import com.mcgwinds.middleware.cache.cachemanage.CacheManager;
-import com.mcgwinds.middleware.cache.datasourcemanager.DataSourceManager;
 import com.mcgwinds.middleware.cache.cachekey.keymanager.CacheKeyFactory;
 import com.mcgwinds.middleware.cache.type.CacheOPType;
 import com.mcgwinds.middleware.cache.util.ClassUtil;
@@ -25,9 +24,6 @@ import java.lang.reflect.Parameter;
 public class CacheHandler {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CacheHandler.class);
-
-    @Resource
-    private DataSourceManager dataSourceManager;
 
     @Resource
     private CacheManager cacheManager;
