@@ -1,5 +1,6 @@
 package com.mcgwinds.middleware.cache.cachemanage.redis;
 
+import com.alibaba.fastjson.TypeReference;
 import com.mcgwinds.middleware.cache.bean.CacheKey;
 import com.mcgwinds.middleware.cache.bean.CacheWrapper;
 import com.mcgwinds.middleware.cache.cachekey.serializer.Serializer;
@@ -35,11 +36,9 @@ public class RedisCacheManager implements CacheManager {
             return null;
         }
         CacheWrapper<Object> resCacheWrapper=null;
-        Class returnType= ClassUtil.getReturnType(method);
         try {
             String cacheValue = jedisTemplate.get(cacheKey.getCacheKey());
-            Object cacheObject=serializer.deserialize(cacheValue.getBytes(),returnType);
-            resCacheWrapper.setCacheObject(cacheObject,0);
+            resCacheWrapper=(CacheWrapper<Object>)serializer.deserialize(cacheValue.getBytes(),new TypeReference<CacheWrapper<Object>>(){});
         }
         catch(CacheException e) {
             LOGGER.error(e.getMessage());
@@ -54,20 +53,26 @@ public class RedisCacheManager implements CacheManager {
 
 
     @Override
-    public void deleteDataOfCache(CacheKey cacheKey, Method method, Object[] arguments) {
+    public boolean deleteDataOfCache(CacheKey cacheKey, Method method, Object[] arguments) {
+        boolean delSuccess=true;
         if(StringUtils.isEmpty(cacheKey.getCacheKey()))
-            return;
+            return delSuccess;
         if(null==jedisTemplate) {
-            return;
+            return delSuccess;
         }
         try {
             jedisTemplate.delete(cacheKey.getCacheKey());
         }
         catch(CacheException e) {
             LOGGER.error(e.getMessage());
+            delSuccess= false;
         }
         catch (Exception e) {
             LOGGER.error(e.getMessage());
+            delSuccess= false;
+        }
+        finally {
+            return delSuccess;
         }
 
 

@@ -13,5 +13,5 @@ public interface CacheManager {
 
     <T> CacheWrapper<T> getDataOfCache(CacheKey cacheKey, Method method, Object[] arguments);
 
-    void deleteDataOfCache(CacheKey cacheKey, Method method, Object[] arguments);
+    boolean deleteDataOfCache(CacheKey cacheKey, Method method, Object[] arguments);
 }

@@ -2,6 +2,7 @@ package com.mcgwinds.middleware.cache.handler;
 
 import com.alibaba.fastjson.JSON;
 import com.mcgwinds.middleware.cache.annotation.Cache;
+import com.mcgwinds.middleware.cache.autoload.AuthLoader;
 import com.mcgwinds.middleware.cache.bean.CacheKey;
 import com.mcgwinds.middleware.cache.bean.CacheWrapper;
 import com.mcgwinds.middleware.cache.cachemanage.CacheManager;
@@ -31,6 +32,9 @@ public class CacheHandler {
     @Resource
     private CacheKeyFactory cacheKeyFactory;
 
+    @Resource
+    private AuthLoader authLoader;
+
     public Object proceed(Cache cache, ProceedingJoinPoint pjp) throws Throwable {
 
         LOGGER.info("cacheHandler is starting processing...");
@@ -39,16 +43,16 @@ public class CacheHandler {
             return getDataOfDataSource(pjp);
         }
         CacheOPType opType=cache.getOPType();
-
-        if(CacheOPType.WR_ONLY==opType) {
-
-        }
         Method method= ClassUtil.getMethod(pjp);
         Object [] arguments=ClassUtil.getArgs(pjp);
         Parameter[] parameters=ClassUtil.getParameter(pjp);
         CacheKey cacheKey=getCacheKey(cache,method,arguments,parameters);
         if(CacheOPType.DEL==opType) {
-            this.deleteDataOfCache(cacheKey, method, arguments); //删除缓存
+            this.deleteDataOfCache(cache,cacheKey, method, arguments); //删除缓存
+        }
+        if(CacheOPType.WR_ONLY==opType) {
+            this.writeDataToCache(cacheKey, method, arguments); // 监听binlog
+
         }
         CacheWrapper<Object> cacheWrapper=null;
         try {
@@ -61,11 +65,27 @@ public class CacheHandler {
         if(opType == CacheOPType.RE_ONLY) {
             return null == cacheWrapper ? null : cacheWrapper.getCacheObject();
         }
+        if(null!=cacheWrapper&&!cacheWrapper.isExpired()) {
+
+        }
 
 
 
 
-        return null;
+
+
+        return cacheWrapper;
+
+    }
+
+    private void writeDataToCache(CacheKey cacheKey, Method method, Object[] arguments) {
+        if(null==cacheKey) {
+            LOGGER.warn("the cache key is null");
+            return;
+        }
+        cacheManager.deleteDataOfCache(cacheKey,method,arguments);
+        //自动加载关闭
+
 
     }
 
@@ -78,14 +98,22 @@ public class CacheHandler {
         return cacheManager.getDataOfCache(cacheKey,method,arguments);
     }
 
-    private void deleteDataOfCache(CacheKey cacheKey, Method method, Object[] arguments) {
+    private void deleteDataOfCache(Cache cache,CacheKey cacheKey, Method method, Object[] arguments) {
         if(null==cacheKey) {
             LOGGER.warn("the cache key is null");
             return;
         }
         LOGGER.info("delete data from cache...,the cache key:{}; method:{}", JSON.toJSONString(cacheKey), JSON.toJSONString(method));
-         cacheManager.deleteDataOfCache(cacheKey,method,arguments);
-         //自动加载
+        boolean autoload=true;
+        //对于删除失败的执行自动加载，防止缓存的脏数据
+        autoload=cacheManager.deleteDataOfCache(cacheKey,method,arguments);
+        //删除成功以及不开启自动加载模式
+        if(!cache.autoLoad()&!autoload) {
+             return;
+         }
+        //开启自动加载
+
+
     }
 
     //从dao中读取数据

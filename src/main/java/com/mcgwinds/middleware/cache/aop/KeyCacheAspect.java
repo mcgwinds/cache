@@ -21,7 +21,7 @@ public class KeyCacheAspect extends CacheAspect {
 
     }
 
-    //用于先更新数据库然后删除缓存
+    //用于先更新数据库然后删除缓存的场景
     public void deleteCache(ProceedingJoinPoint pjp) throws Throwable {
 
         Method method = getMethod(pjp);

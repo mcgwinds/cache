@@ -1,5 +1,7 @@
 package com.mcgwinds.middleware.cache.cachekey.serializer;
 
+import com.alibaba.fastjson.TypeReference;
+
 import java.lang.reflect.Type;
 
 /**
@@ -22,5 +24,5 @@ public interface Serializer<T> {
      * @return T
      * @throws Exception
      */
-    T deserialize(final byte[] bytes, final Type returnType) throws Exception;
+    T deserialize(final byte[] bytes, final TypeReference returnType) throws Exception;
 }

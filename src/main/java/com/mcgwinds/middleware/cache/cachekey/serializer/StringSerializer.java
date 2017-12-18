@@ -1,5 +1,7 @@
 package com.mcgwinds.middleware.cache.cachekey.serializer;
 
+import com.alibaba.fastjson.TypeReference;
+
 import java.lang.reflect.Type;
 import java.nio.charset.Charset;
 
@@ -23,7 +25,7 @@ public class StringSerializer implements Serializer<String> {
         return(obj == null ? null : obj.getBytes(charsetName));
     }
 
-    public String deserialize(byte[] bytes, Type returnType) throws Exception {
+    public String deserialize(byte[] bytes, TypeReference returnType) throws Exception {
         return(bytes == null ? null : new String(bytes, charsetName));
     }
 }

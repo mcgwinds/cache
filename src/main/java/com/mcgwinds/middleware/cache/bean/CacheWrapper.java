@@ -22,14 +22,28 @@ public class CacheWrapper<T> implements Serializable, Cloneable {
      */
     private int expire;
 
+    public CacheWrapper(T cacheObject,int expire) {
+        this.cacheObject=cacheObject;
+        this.expire=expire;
+        this.lastLoadTime=System.currentTimeMillis();
+    }
+
     public T getCacheObject() {
         return cacheObject;
     }
 
-    public void setCacheObject(T cacheObject,int expire) {
+    public void setCacheObject(T cacheObject) {
         this.cacheObject = cacheObject;
-        this.expire=expire;
     }
+
+    public int getExpire() {
+        return expire;
+    }
+
+    public void setExpire(int expire) {
+        this.expire = expire;
+    }
+
 
     /**
      * 判断缓存是否已经过期
