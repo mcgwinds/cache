@@ -2,7 +2,8 @@ package com.mcgwinds.middleware.cache.handler;
 
 import com.alibaba.fastjson.JSON;
 import com.mcgwinds.middleware.cache.annotation.Cache;
-import com.mcgwinds.middleware.cache.autoload.AuthLoader;
+import com.mcgwinds.middleware.cache.autoload.AutoLoader;
+import com.mcgwinds.middleware.cache.bean.AutoLoadWrapper;
 import com.mcgwinds.middleware.cache.bean.CacheKey;
 import com.mcgwinds.middleware.cache.bean.CacheWrapper;
 import com.mcgwinds.middleware.cache.cachemanage.CacheManager;
@@ -33,7 +34,7 @@ public class CacheHandler {
     private CacheKeyFactory cacheKeyFactory;
 
     @Resource
-    private AuthLoader authLoader;
+    private AutoLoader autoLoader;
 
     public Object proceed(Cache cache, ProceedingJoinPoint pjp) throws Throwable {
 
@@ -65,16 +66,43 @@ public class CacheHandler {
         if(opType == CacheOPType.RE_ONLY) {
             return null == cacheWrapper ? null : cacheWrapper.getCacheObject();
         }
-        if(null!=cacheWrapper&&!cacheWrapper.isExpired()) {
-
+        if(null != cacheWrapper && !cacheWrapper.isExpired()) {
+            AutoLoadWrapper autoLoadTO=autoLoader.putIfAbsent(cacheKey, cache, pjp,cacheWrapper);
+            if(null != autoLoadTO) {// 同步最后加载时间
+                autoLoadTO.setLastRequestTime(System.currentTimeMillis())//
+                        .setLastLoadTime(cacheWrapper.getLastLoadTime())// 同步加载时间
+                        .setExpire(cacheWrapper.getExpire());// 同步过期时间
+            } else {// 如果缓存快要失效，则自动刷新
+                //refreshHandler.doRefresh(pjp, cache, cacheKey, cacheWrapper);
+            }
+            return cacheWrapper.getCacheObject();
         }
 
+        CacheWrapper<Object> newCacheWrapper=null;
+        long loadDataUseTime=0;
+        try {
+            long loadDataStartTime=System.currentTimeMillis();
+            Object loadData=pjp.proceed(arguments);
+            loadDataUseTime=System.currentTimeMillis() - loadDataStartTime;
+            newCacheWrapper=new CacheWrapper<Object>(loadData, cache.expire());
+        } catch(Throwable e) {
+            throw e;
+        }
 
+        AutoLoadWrapper autoLoadWrapper=autoLoader.putIfAbsent(cacheKey, cache,pjp, newCacheWrapper);
+            try {
+                writeCache(pjp, pjp.getArgs(), cache, cacheKey, newCacheWrapper);
+                if(null != autoLoadWrapper) {// 同步最后加载时间
+                    autoLoadWrapper.setLastRequestTime(System.currentTimeMillis())//
+                            .setLastLoadTime(newCacheWrapper.getLastLoadTime())// 同步加载时间
+                            .setExpire(newCacheWrapper.getExpire())// 同步过期时间
+                            .addUseTotalTime(loadDataUseTime);// 统计用时
+                }
+            } catch(Exception ex) {
+                LOGGER.error(ex.getMessage(), ex);
+            }
 
-
-
-
-        return cacheWrapper;
+        return newCacheWrapper.getCacheObject();
 
     }
 
@@ -89,7 +117,7 @@ public class CacheHandler {
 
     }
 
-    private CacheWrapper<Object> getDataOfCache(CacheKey cacheKey, Method method, Object[] arguments) {
+    public CacheWrapper<Object> getDataOfCache(CacheKey cacheKey, Method method, Object[] arguments) {
         if(null==cacheKey) {
             LOGGER.warn("the cache key is null");
             return null;
@@ -104,11 +132,11 @@ public class CacheHandler {
             return;
         }
         LOGGER.info("delete data from cache...,the cache key:{}; method:{}", JSON.toJSONString(cacheKey), JSON.toJSONString(method));
-        boolean autoload=true;
+        boolean autoLoad=true;
         //对于删除失败的执行自动加载，防止缓存的脏数据
-        autoload=cacheManager.deleteDataOfCache(cacheKey,method,arguments);
+        autoLoad=cacheManager.deleteDataOfCache(cacheKey,method,arguments);
         //删除成功以及不开启自动加载模式
-        if(!cache.autoLoad()&!autoload) {
+        if(!cache.autoLoad()&!autoLoad) {
              return;
          }
         //开启自动加载
@@ -132,6 +160,11 @@ public class CacheHandler {
 
     private CacheKey getCacheKey(Cache cache, Method method,Object [] arguments,Parameter[] parameters) {
         return cacheKeyFactory.getCacheKey(cache,method,arguments,parameters);
+    }
+
+    public void writeCache(ProceedingJoinPoint pj, Object[] arguments, Cache cache, CacheKey cacheKey, CacheWrapper<Object> newCacheWrapper) {
+
+
     }
 
 }

@@ -44,6 +44,13 @@ public class CacheWrapper<T> implements Serializable, Cloneable {
         this.expire = expire;
     }
 
+    public long getLastLoadTime() {
+        return lastLoadTime;
+    }
+
+    public void setLastLoadTime(long lastLoadTime) {
+        this.lastLoadTime = lastLoadTime;
+    }
 
     /**
      * 判断缓存是否已经过期

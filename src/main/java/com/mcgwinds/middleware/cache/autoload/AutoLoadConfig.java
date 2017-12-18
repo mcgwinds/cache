@@ -10,6 +10,11 @@ import java.util.concurrent.ExecutorService;
 
 public class AutoLoadConfig {
 
+    /**
+     * 自动加载最小过期时间
+     */
+    public static final int AUTO_LOAD_MIN_EXPIRE=120;
+
     //触发自动加载时间
     private int expire;
 
@@ -24,6 +29,30 @@ public class AutoLoadConfig {
 
     //自动加载队列比较
     private CompareType compareType;
+
+    /**
+     * 单个线程中执行自动加载的时间间隔
+     */
+    private int autoLoadPeriod=50;
+
+    //在加载数据之前检查缓存是否已经被更新
+    private boolean isBeforeLoadCheckFromCache=true;
+
+    public boolean isBeforeLoadCheckFromCache() {
+        return isBeforeLoadCheckFromCache;
+    }
+
+    public void setBeforeLoadCheckFromCache(boolean beforeLoadCheckFromCache) {
+        isBeforeLoadCheckFromCache = beforeLoadCheckFromCache;
+    }
+
+    public int getAutoLoadPeriod() {
+        return autoLoadPeriod;
+    }
+
+    public void setAutoLoadPeriod(int autoLoadPeriod) {
+        this.autoLoadPeriod = autoLoadPeriod;
+    }
 
     public int getQueneSize() {
         return queneSize;

@@ -43,4 +43,15 @@ public @interface Cache {
       */
      boolean autoLoad() default false;
 
+     /**
+      * 当autoload为true时，缓存数据在 requestTimeout 秒之内没有使用了，就不进行自动加载数据,如果requestTimeout为0时，会一直自动加载
+      * @return long 请求过期
+      */
+     long requestTimeout() default 36000L;
+
+     int expire() default 200;
+
+     int alarmTime() default 0;
+
+
 }
