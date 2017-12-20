@@ -1,7 +1,10 @@
 package com.mcgwinds.middleware.cache.handler;
 
 import com.alibaba.fastjson.JSON;
+import com.mcgwinds.middleware.cache.annotation.BaseCache;
 import com.mcgwinds.middleware.cache.annotation.Cache;
+import com.mcgwinds.middleware.cache.annotation.DeleteCache;
+import com.mcgwinds.middleware.cache.annotation.UpdateCache;
 import com.mcgwinds.middleware.cache.autoload.AutoLoader;
 import com.mcgwinds.middleware.cache.bean.AutoLoadWrapper;
 import com.mcgwinds.middleware.cache.bean.CacheKey;
@@ -36,25 +39,19 @@ public class CacheHandler {
     @Resource
     private AutoLoader autoLoader;
 
-    public Object proceed(Cache cache, ProceedingJoinPoint pjp) throws Throwable {
+    public Object getDataProcess(Cache cache, ProceedingJoinPoint pjp) throws Throwable {
 
-        LOGGER.info("cacheHandler is starting processing...");
+        LOGGER.info("getData is starting processing...");
         // 如果不进行缓存，则直接从数据源读
-        if(!cache.isCache()) {
+        BaseCache baseCache=cache.baseCache();
+        if(baseCache==null|!baseCache.isCache()) {
             return getDataOfDataSource(pjp);
         }
-        CacheOPType opType=cache.getOPType();
         Method method= ClassUtil.getMethod(pjp);
         Object [] arguments=ClassUtil.getArgs(pjp);
         Parameter[] parameters=ClassUtil.getParameter(pjp);
-        CacheKey cacheKey=getCacheKey(cache,method,arguments,parameters);
-        if(CacheOPType.DEL==opType) {
-            this.deleteDataOfCache(cache,cacheKey, method, arguments); //删除缓存
-        }
-        if(CacheOPType.WR_ONLY==opType) {
-            this.writeDataToCache(cacheKey, method, arguments); // 监听binlog
-
-        }
+        CacheKey cacheKey=getCacheKey(baseCache,method,arguments,parameters);
+        CacheOPType opType=cache.getOPType();
         CacheWrapper<Object> cacheWrapper=null;
         try {
             cacheWrapper=this.getDataOfCache(cacheKey, method, arguments);// 从缓存中获取数据
@@ -64,18 +61,19 @@ public class CacheHandler {
         LOGGER.warn("Cache key:{}, Cache data is null {} ", cacheKey, null == cacheWrapper);
 
         if(opType == CacheOPType.RE_ONLY) {
-            return null == cacheWrapper ? null : cacheWrapper.getCacheObject();
-        }
-        if(null != cacheWrapper && !cacheWrapper.isExpired()) {
-            AutoLoadWrapper autoLoadTO=autoLoader.putIfAbsent(cacheKey, cache, pjp,cacheWrapper);
-            if(null != autoLoadTO) {// 同步最后加载时间
-                autoLoadTO.setLastRequestTime(System.currentTimeMillis())//
+
+        if(cache.autoLoad()&&null != cacheWrapper && !cacheWrapper.isExpired()) {
+            AutoLoadWrapper autoLoadWrapper=autoLoader.putIfAbsent(cacheKey, cache, pjp,cacheWrapper);
+            if(null != autoLoadWrapper) {// 同步最后加载时间
+                autoLoadWrapper.setLastRequestTime(System.currentTimeMillis())//
                         .setLastLoadTime(cacheWrapper.getLastLoadTime())// 同步加载时间
                         .setExpire(cacheWrapper.getExpire());// 同步过期时间
             } else {// 如果缓存快要失效，则自动刷新
                 //refreshHandler.doRefresh(pjp, cache, cacheKey, cacheWrapper);
             }
-            return cacheWrapper.getCacheObject();
+
+        }
+            return  null == cacheWrapper ? null : cacheWrapper.getCacheObject();
         }
 
         CacheWrapper<Object> newCacheWrapper=null;
@@ -88,23 +86,51 @@ public class CacheHandler {
         } catch(Throwable e) {
             throw e;
         }
+        //写入缓存
+        writeCache(pjp, pjp.getArgs(), cache, cacheKey, newCacheWrapper);
 
-        AutoLoadWrapper autoLoadWrapper=autoLoader.putIfAbsent(cacheKey, cache,pjp, newCacheWrapper);
+        if(cache.autoLoad()) {
+            AutoLoadWrapper autoLoadWrapper = autoLoader.putIfAbsent(cacheKey, cache, pjp, newCacheWrapper);
             try {
-                writeCache(pjp, pjp.getArgs(), cache, cacheKey, newCacheWrapper);
-                if(null != autoLoadWrapper) {// 同步最后加载时间
+                if (null != autoLoadWrapper) {// 同步最后加载时间
                     autoLoadWrapper.setLastRequestTime(System.currentTimeMillis())//
                             .setLastLoadTime(newCacheWrapper.getLastLoadTime())// 同步加载时间
                             .setExpire(newCacheWrapper.getExpire())// 同步过期时间
                             .addUseTotalTime(loadDataUseTime);// 统计用时
                 }
-            } catch(Exception ex) {
+            } catch (Exception ex) {
                 LOGGER.error(ex.getMessage(), ex);
             }
+        }
 
         return newCacheWrapper.getCacheObject();
 
     }
+
+    public void updateCacheProcess(UpdateCache updateCache, ProceedingJoinPoint pjp) throws Throwable{
+
+        BaseCache baseCache=updateCache.baseCache();
+        if(baseCache==null|!baseCache.isCache()) {
+            return ;
+        }
+        Method method= ClassUtil.getMethod(pjp);
+        Object [] arguments=ClassUtil.getArgs(pjp);
+        Parameter[] parameters=ClassUtil.getParameter(pjp);
+        CacheKey cacheKey=getCacheKey(baseCache,method,arguments,parameters);
+    }
+
+    public void deleteCacheProcess(DeleteCache deleteCache, ProceedingJoinPoint pjp)throws Throwable {
+        BaseCache baseCache=deleteCache.baseCache();
+        if(baseCache==null|!baseCache.isCache()) {
+            return ;
+        }
+        Method method= ClassUtil.getMethod(pjp);
+        Object [] arguments=ClassUtil.getArgs(pjp);
+        Parameter[] parameters=ClassUtil.getParameter(pjp);
+        CacheKey cacheKey=getCacheKey(baseCache,method,arguments,parameters);
+    }
+
+
 
     private void writeDataToCache(CacheKey cacheKey, Method method, Object[] arguments) {
         if(null==cacheKey) {
@@ -158,7 +184,7 @@ public class CacheHandler {
         }
     }
 
-    private CacheKey getCacheKey(Cache cache, Method method,Object [] arguments,Parameter[] parameters) {
+    private CacheKey getCacheKey(BaseCache cache, Method method,Object [] arguments,Parameter[] parameters) {
         return cacheKeyFactory.getCacheKey(cache,method,arguments,parameters);
     }
 
@@ -166,5 +192,7 @@ public class CacheHandler {
 
 
     }
+
+
 
 }

@@ -90,7 +90,7 @@ public class AutoLoader {
             return autoLoadWrapper;
         }
         int expire=cacheWrapper.getExpire();
-        if(expire >= AUTO_LOAD_MIN_EXPIRE && autoLoadMap.size() <= this.autoLoadConfig.getQueneSize())) {
+        if(expire >= autoLoadConfig.AUTO_LOAD_MIN_EXPIRE && autoLoadMap.size() <= this.autoLoadConfig.getQueneSize()) {
 
             autoLoadWrapper=new AutoLoadWrapper(cacheKey,cache,pjp, expire);
             AutoLoadWrapper tmp=autoLoadMap.putIfAbsent(cacheKey, autoLoadWrapper);
@@ -155,7 +155,7 @@ public class AutoLoader {
             }
             int expire=autoLoadWrapper.getExpire();
             // 如果过期时间太小了，就不允许自动加载，避免加载过于频繁，影响系统稳定性
-            if(expire < AUTO_LOAD_MIN_EXPIRE) {
+            if(expire < autoLoadConfig.AUTO_LOAD_MIN_EXPIRE) {
                 return;
             }
             // 计算超时时间

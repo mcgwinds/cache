@@ -1,5 +1,6 @@
 package com.mcgwinds.middleware.cache.cachekey.keymanager;
 
+import com.mcgwinds.middleware.cache.annotation.BaseCache;
 import com.mcgwinds.middleware.cache.annotation.Cache;
 import com.mcgwinds.middleware.cache.annotation.ParameterKey;
 import com.mcgwinds.middleware.cache.bean.CacheKey;
@@ -19,7 +20,7 @@ public class DefaultCacheKeyFactory implements CacheKeyFactory {
      *获取缓存key
      * @return CacheKey
      */
-    public CacheKey getCacheKey(Cache cache, Method method,Object [] arguments,Parameter[] parameters) {
+    public CacheKey getCacheKey(BaseCache cache, Method method, Object [] arguments, Parameter[] parameters) {
         String namespace=cache.namespace();
         String cacheKeyHeader=cache.getCacheKeyHeader();
         KeyMap<String,String> paramKeyMap=new KeyMap<String,String>();
