@@ -105,21 +105,31 @@ public class CacheContext implements ApplicationContextAware {
 
     protected Cache buildCache(CacheInvokeConfig cacheInvokeConfig) {
         String cacheType=cacheInvokeConfig.getCacheType();
-        AbstractCacheBuilder cacheBuilder= (AbstractCacheBuilder) applicationContext.getBean(cacheType);
-        if(cacheBuilder==null) {
+        AbstractCacheBuilder cacheBuilder=null;
+        try {
+            cacheBuilder = (AbstractCacheBuilder) applicationContext.getBean(cacheType);
+        }
+        catch (Exception e) {
             logger.warn("the cacheBuilder bean of ({}) is not found ",cacheType);
             return null;
         }
-        cacheBuilder.setExpireAfterWriteInMillis(cacheInvokeConfig.getExpireAfterWriteInMillis());
 
-        CacheCodec cacheCodec= (CacheCodec) applicationContext.getBean(cacheInvokeConfig.getSerialPolicy());
+        cacheBuilder.setExpireAfterWriteInMillis(cacheInvokeConfig.getExpireAfterWriteInMillis());
+        CacheCodec cacheCodec=null;
+
+        try {
+            cacheCodec = (CacheCodec) applicationContext.getBean(cacheInvokeConfig.getSerialPolicy());
+        }
+        catch (Exception e) {
+            logger.warn("the cacheBuilder bean of ({}) is not found ",cacheType);
+            return null;
+        }
         if(cacheCodec==null) {
             logger.warn("the CacheCodec bean of ({}) is not found ",cacheInvokeConfig.getSerialPolicy());
-           return null;
+            return null;
         }
         cacheBuilder.setSerialPolicy(cacheCodec);
         Cache cache = cacheBuilder.buildCache();
-
         return cache;
     }
 
