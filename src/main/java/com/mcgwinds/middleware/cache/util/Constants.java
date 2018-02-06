@@ -1,9 +1,9 @@
 package com.mcgwinds.middleware.cache.util;
 
 /**
- * Created by mcg on 2017/12/16.
+ * Created by mcg on 2018/2/6.
  */
-public enum Constants {
+public class Constants {
 
-    Nil;
+    public final static String NIL="Nil";
 }

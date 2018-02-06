@@ -2,12 +2,13 @@ package com.mcgwinds.middleware.cache.util;
 
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.reflect.MethodSignature;
+import org.springframework.asm.Type;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 
 /**
- * Created by mcg on 2017/12/16.
+ * Created by mcg on 2018/1/23.
  */
 public class ClassUtil {
 
@@ -32,6 +33,18 @@ public class ClassUtil {
         return method.getReturnType();
     }
 
+    public static String getKey(Method method, Class targetClass) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(method.getDeclaringClass().getName());
+        sb.append('.');
+        sb.append(method.getName());
+        sb.append(Type.getMethodDescriptor(method));
+        if (targetClass != null) {
+            sb.append('_');
+            sb.append(targetClass.getName());
+        }
+        return sb.toString();
+    }
 
 
 }
